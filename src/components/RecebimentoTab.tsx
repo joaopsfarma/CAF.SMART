@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
-export default function RecebimentoTab() {
+export default function RecebimentoTab({ user }: { user: any }) {
   const [isPdfReady, setIsPdfReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -33,7 +35,7 @@ export default function RecebimentoTab() {
     orderNumber: '',
     volumes: '',
     temperature: '',
-    collaborator: '',
+    collaborator: user?.displayName || '',
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().split(' ')[0].substring(0, 5),
     observations: ''
@@ -70,43 +72,29 @@ export default function RecebimentoTab() {
     setTimeout(() => setToastMsg(''), 4000);
   };
 
-  // Função para guardar na Base de Dados (Office 365 via Power Automate)
+  // Função para salvar no Banco de Dados (Firebase Firestore)
   const saveToDatabase = async () => {
+    if (!user) {
+      showToast("⚠️ É necessário fazer login para salvar.");
+      return;
+    }
+    
     setIsSaving(true);
     try {
-      // ⚠️ COLE AQUI O LINK (URL) DO SEU FLUXO DO POWER AUTOMATE
-      // Exemplo: "https://prod-12.brazilsouth.logic.azure.com:443/workflows/..."
-      const powerAutomateUrl = "COLE_AQUI_A_URL_DO_HTTP_REQUEST";
-      
-      if (powerAutomateUrl === "COLE_AQUI_A_URL_DO_HTTP_REQUEST") {
-        showToast("⚠️ Configure o link do Power Automate no código para guardar no Office 365.");
-        setIsSaving(false);
-        return;
-      }
-
-      // Prepara o "pacote" de dados que será enviado para o seu Office 365
       const payload = {
         ...formData,
-        checklist: checks,
-        dataHoraRegistro: `${formData.date} ${formData.time}`
+        checklist: JSON.stringify(checks),
+        dataHoraRegistro: `${formData.date} ${formData.time}`,
+        uid: user.uid,
+        createdAt: Date.now()
       };
 
-      // Dispara os dados para o servidor da Microsoft
-      await fetch(powerAutomateUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+      await addDoc(collection(db, 'recebimentos'), payload);
 
-      showToast("✅ Registo guardado com sucesso no Office 365!");
-      
-      // Opcional: Pode limpar o formulário depois de guardar com sucesso
-      // setFormData({...}); 
+      showToast("✅ Registro salvo com sucesso no Firebase!");
       
     } catch (error) {
-      console.error("Erro ao guardar:", error);
+      console.error("Erro ao salvar:", error);
       showToast("❌ Erro ao comunicar com o servidor. Tente novamente.");
     } finally {
       setIsSaving(false);
@@ -202,7 +190,7 @@ Os detalhes completos do checklist encontram-se no sistema ou no PDF gerado.
             <span className="hidden sm:inline">E-mail</span>
           </button>
 
-          {/* Botão de Guardar (Banco de Dados) */}
+          {/* Botão de Salvar (Banco de Dados) */}
           <button
             onClick={saveToDatabase}
             disabled={isSaving}
@@ -210,7 +198,7 @@ Os detalhes completos do checklist encontram-se no sistema ou no PDF gerado.
               ${isSaving ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
           >
             <Save size={18} />
-            <span className="hidden sm:inline">{isSaving ? 'A guardar...' : 'Guardar Registo'}</span>
+            <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar Registro'}</span>
           </button>
 
           {/* Botão de PDF */}

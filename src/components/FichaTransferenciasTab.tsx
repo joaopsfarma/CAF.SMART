@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 
 export default function FichaTransferenciasTab() {
   const [fichas, setFichas] = useState<any[]>([]);
-  const [statusText, setStatusText] = useState('A aguardar ficheiro...');
+  const [statusText, setStatusText] = useState('Aguardando arquivo...');
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -20,9 +20,9 @@ export default function FichaTransferenciasTab() {
         processData(results.data);
       },
       error: function(error) {
-        alert("Erro ao ler o ficheiro CSV. Verifique o formato.");
+        alert("Erro ao ler o arquivo CSV. Verifique o formato.");
         console.error(error);
-        setStatusText('Erro ao processar ficheiro.');
+        setStatusText('Erro ao processar arquivo.');
         setIsProcessing(false);
       }
     });
@@ -66,7 +66,7 @@ export default function FichaTransferenciasTab() {
     setFichas(newFichas);
     
     if (newFichas.length === 0) {
-      setStatusText("Nenhum lote válido encontrado no ficheiro.");
+      setStatusText("Nenhum lote válido encontrado no arquivo.");
     } else {
       setStatusText(`${newFichas.length} fichas geradas com sucesso! Prontas para PDF.`);
     }
@@ -82,7 +82,7 @@ export default function FichaTransferenciasTab() {
     const printWindow = window.open('', '_blank');
     
     if (!printWindow) {
-      alert("Por favor, permita as janelas pop-up (pop-ups) no seu navegador para poder guardar o PDF.");
+      alert("Por favor, permita as janelas pop-up (pop-ups) no seu navegador para poder salvar o PDF.");
       return;
     }
 
@@ -170,7 +170,7 @@ export default function FichaTransferenciasTab() {
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload size={40} className="text-slate-400 mb-3" />
-            <p className="text-sm font-medium text-slate-700">Clique para selecionar o ficheiro CSV do sistema</p>
+            <p className="text-sm font-medium text-slate-700">Clique para selecionar o arquivo CSV do sistema</p>
             <p className="text-xs text-slate-500 mt-1">O sistema lerá apenas Medicamento, Lote e Validade. (Donezepila ignorada)</p>
             <input 
               type="file" 

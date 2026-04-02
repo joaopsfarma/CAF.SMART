@@ -634,7 +634,7 @@ export default function FracionamentoTab() {
         {!isReady && (
           <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3 print:hidden">
             <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm font-medium">Faça o upload obrigatório do ficheiro de <b>Consumo</b> e do <b>Estoque CAF</b> para ativar a análise.</p>
+            <p className="text-sm font-medium">Faça o upload obrigatório do arquivo de <b>Consumo</b> e do <b>Estoque CAF</b> para ativar a análise.</p>
           </div>
         )}
 

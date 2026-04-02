@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, ClipboardCheck } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
-export default function QuarentenaTab() {
+export default function QuarentenaTab({ user }: { user: any }) {
   const [isPdfReady, setIsPdfReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -33,7 +35,7 @@ export default function QuarentenaTab() {
     orderNumber: '',
     volumes: '',
     collaborator: '',
-    pharmacist: '',
+    pharmacist: user?.displayName || '',
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().split(' ')[0].substring(0, 5),
     observations: '',
@@ -87,32 +89,27 @@ export default function QuarentenaTab() {
   };
 
   const saveToDatabase = async () => {
+    if (!user) {
+      showToast("⚠️ É necessário fazer login para salvar.");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const powerAutomateUrl = "COLE_AQUI_A_URL_DO_HTTP_REQUEST";
-      
-      if (powerAutomateUrl === "COLE_AQUI_A_URL_DO_HTTP_REQUEST") {
-        showToast("⚠️ Configure o link do Power Automate no código para guardar no Office 365.");
-        setIsSaving(false);
-        return;
-      }
-
       const payload = {
         ...formData,
-        recebimentoChecks: checks,
-        farmaciaChecks: pharmacyChecks,
-        dataHoraRegistro: `${formData.date} ${formData.time}`
+        recebimentoChecks: JSON.stringify(checks),
+        farmaciaChecks: JSON.stringify(pharmacyChecks),
+        dataHoraRegistro: `${formData.date} ${formData.time}`,
+        uid: user.uid,
+        createdAt: Date.now()
       };
 
-      await fetch(powerAutomateUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      await addDoc(collection(db, 'quarentenas'), payload);
 
-      showToast("✅ Registo guardado com sucesso no Office 365!");
+      showToast("✅ Registro salvo com sucesso no Firebase!");
     } catch (error) {
-      console.error("Erro ao guardar:", error);
+      console.error("Erro ao salvar:", error);
       showToast("❌ Erro ao comunicar com o servidor. Tente novamente.");
     } finally {
       setIsSaving(false);
@@ -202,7 +199,7 @@ Os detalhes completos dos checklists encontram-se no sistema ou no PDF gerado.
             <Mail size={18} /> <span className="hidden sm:inline">E-mail</span>
           </button>
           <button onClick={saveToDatabase} disabled={isSaving} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-sm ${isSaving ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-            <Save size={18} /> <span className="hidden sm:inline">{isSaving ? 'A guardar...' : 'Guardar'}</span>
+            <Save size={18} /> <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar'}</span>
           </button>
           <button onClick={generatePDF} disabled={!isPdfReady} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-sm ${isPdfReady ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-400 cursor-not-allowed'}`}>
             <Download size={18} /> <span className="hidden sm:inline">Baixar PDF</span>
@@ -397,7 +394,7 @@ Os detalhes completos dos checklists encontram-se no sistema ou no PDF gerado.
 
           {/* Rodapé do PDF */}
           <div className="mt-8 border-t border-slate-200 pt-2 flex justify-between text-[9px] text-slate-400 uppercase tracking-wider font-semibold">
-            <span>Doc. Registo Interno</span>
+            <span>Doc. Registro Interno</span>
             <span>Gerado em: {formData.date.split('-').reverse().join('/')} às {formData.time}</span>
           </div>
 

@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "Recebimento": {
+      "title": "Recebimento",
+      "description": "Registro de recebimento de mercadorias",
+      "type": "object",
+      "properties": {
+        "supplier": { "type": "string" },
+        "carrier": { "type": "string" },
+        "invoice": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "volumes": { "type": "string" },
+        "temperature": { "type": "string" },
+        "collaborator": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "observations": { "type": "string" },
+        "checklist": { "type": "string", "description": "JSON stringified checklist" },
+        "dataHoraRegistro": { "type": "string" },
+        "createdAt": { "type": "number", "description": "Timestamp of creation" }
+      }
+    },
+    "Quarentena": {
+      "title": "Quarentena",
+      "description": "Registro de auditoria de psicotrópicos",
+      "type": "object",
+      "properties": {
+        "supplier": { "type": "string" },
+        "carrier": { "type": "string" },
+        "invoice": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "volumes": { "type": "string" },
+        "collaborator": { "type": "string" },
+        "pharmacist": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "observations": { "type": "string" },
+        "finalDecision": { "type": "string" },
+        "recebimentoChecks": { "type": "string", "description": "JSON stringified checks" },
+        "farmaciaChecks": { "type": "string", "description": "JSON stringified checks" },
+        "dataHoraRegistro": { "type": "string" },
+        "createdAt": { "type": "number", "description": "Timestamp of creation" }
+      }
+    }
+  },
+  "firestore": {
+    "recebimentos": {
+      "schema": { "$ref": "#/entities/Recebimento" },
+      "description": "Coleção de recebimentos"
+    },
+    "quarentenas": {
+      "schema": { "$ref": "#/entities/Quarentena" },
+      "description": "Coleção de quarentenas"
+    }
+  }
+}

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail } from 'lucide-react';
+import Papa from 'papaparse';
+import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Table } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 export default function RecebimentoTab({ user }: { user: any }) {
   const [isPdfReady, setIsPdfReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const pdfRef = useRef(null);
 
@@ -140,23 +142,69 @@ Os detalhes completos do checklist encontram-se no sistema ou no PDF gerado.
     showToast("📧 A abrir o Outlook (Office 365)...");
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     if (!isPdfReady) {
       showToast("A biblioteca de PDF ainda está a carregar. Tente novamente.");
       return;
     }
 
+    if (isGeneratingPdf) return;
+
+    setIsGeneratingPdf(true);
+    showToast("⚙️ A processar o PDF... Aguarde um momento.");
+
     const element = pdfRef.current;
     const opt = {
-      margin: 15,
+      margin: 10,
       filename: `Conferencia_Recebimento_NF${formData.invoice || 'S-N'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { 
+        scale: 1.5, 
+        useCORS: true,
+        logging: false,
+        letterRendering: true
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    (window as any).html2pdf().set(opt).from(element).save();
-    showToast("⬇️ Transferência do PDF iniciada.");
+    try {
+      await (window as any).html2pdf().set(opt).from(element).save();
+      showToast("✅ PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      showToast("❌ Erro ao gerar PDF. Tente novamente.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const downloadCSV = () => {
+    const dataToExport = [{
+      'Data': formData.date,
+      'Hora': formData.time,
+      'Fornecedor': formData.supplier,
+      'Nº Pedido/OC': formData.orderNumber,
+      'Nota Fiscal': formData.invoice,
+      'Transportadora': formData.carrier,
+      'Entregador': formData.deliveryPerson,
+      'Temperatura (ºC)': formData.temperature,
+      'Volume/Qtd': formData.volume,
+      'Colaborador': formData.collaborator,
+      ...Object.keys(checks).reduce((acc, key) => {
+        acc[key] = checks[key] ? 'Conforme' : 'Não Conforme';
+        return acc;
+      }, {} as any)
+    }];
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `recebimento_${formData.invoice || 'registro'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -201,15 +249,26 @@ Os detalhes completos do checklist encontram-se no sistema ou no PDF gerado.
             <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar Registro'}</span>
           </button>
 
+          {/* Botão de Planilha */}
+          <button
+            onClick={downloadCSV}
+            disabled={!isPdfReady}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-sm
+              ${isPdfReady ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-400 cursor-not-allowed'}`}
+          >
+            <Table size={18} />
+            <span className="hidden sm:inline">Baixar Planilha</span>
+          </button>
+
           {/* Botão de PDF */}
           <button
             onClick={generatePDF}
-            disabled={!isPdfReady}
+            disabled={!isPdfReady || isGeneratingPdf}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-sm
-              ${isPdfReady ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-400 cursor-not-allowed'}`}
+              ${(!isPdfReady || isGeneratingPdf) ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
-            <Download size={18} />
-            <span className="hidden sm:inline">Baixar PDF</span>
+            {isGeneratingPdf ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+            <span className="hidden sm:inline">{isGeneratingPdf ? 'Gerando...' : 'Baixar PDF'}</span>
           </button>
         </div>
       </div>

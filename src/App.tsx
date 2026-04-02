@@ -291,7 +291,7 @@ export default function App() {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          {activeTab === 'historico' && <HistoricoTab />}
+          {activeTab === 'historico' && <HistoricoTab user={user} />}
           {activeTab === 'recebimento' && <RecebimentoTab user={user} />}
           {activeTab === 'quarentena' && <QuarentenaTab user={user} />}
           {activeTab === 'previsao' && <PrevisaoTab />}

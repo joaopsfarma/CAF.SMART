@@ -65,6 +65,11 @@ service cloud.firestore {
       return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email in ['joaopsfarma@gmail.com', 'outro@email.com']);
+    }
+
     function isValidRecebimento(data) {
       return data.keys().hasAll(['supplier', 'date', 'time', 'uid', 'createdAt']) &&
              data.supplier is string &&
@@ -90,15 +95,15 @@ service cloud.firestore {
     match /recebimentos/{docId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidRecebimento(request.resource.data) && uidUnchanged();
-      allow update: if isOwner() && isValidRecebimento(request.resource.data) && uidNotModified();
-      allow delete: if isOwner();
+      allow update: if (isOwner() || isAdmin()) && isValidRecebimento(request.resource.data) && uidNotModified();
+      allow delete: if isOwner() || isAdmin();
     }
 
     match /quarentenas/{docId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidQuarentena(request.resource.data) && uidUnchanged();
-      allow update: if isOwner() && isValidQuarentena(request.resource.data) && uidNotModified();
-      allow delete: if isOwner();
+      allow update: if (isOwner() || isAdmin()) && isValidQuarentena(request.resource.data) && uidNotModified();
+      allow delete: if isOwner() || isAdmin();
     }
   }
 }

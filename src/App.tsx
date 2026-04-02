@@ -94,10 +94,10 @@ export default function App() {
           <div className="w-20 h-20 mx-auto mb-6">
             <Logo className="w-full h-full" />
           </div>
-          <h1 className="text-3xl font-black text-[#0f4c81] mb-2 flex items-baseline justify-center">
-            CAF<span className="text-[#4caf50] mx-0.5 text-4xl leading-none">.</span>SMART
+          <h1 className="text-4xl font-black text-[#4b2c7f] mb-1 flex items-center justify-center tracking-tighter">
+            CAF<span className="w-2.5 h-2.5 bg-[#4caf50] rounded-full mx-1 mt-2"></span>SMART
           </h1>
-          <p className="text-slate-500 mb-6">Faça login para acessar o sistema</p>
+          <p className="text-[10px] font-bold text-[#4b2c7f] tracking-[0.15em] mb-8 uppercase opacity-80">Central de Abastecimento Farmacêutico</p>
           
           <form onSubmit={handleEmailAuth} className="space-y-4 mb-6 text-left">
             {authError && (
@@ -213,10 +213,10 @@ export default function App() {
               <Logo className="w-full h-full" />
             </div>
             <div className="flex flex-col">
-              <h2 className="text-2xl font-black text-[#0f4c81] tracking-tight leading-none flex items-baseline">
-                CAF<span className="text-[#4caf50] mx-0.5 text-3xl leading-none">.</span>SMART
+              <h2 className="text-2xl font-black text-[#4b2c7f] tracking-tighter leading-none flex items-center">
+                CAF<span className="w-1.5 h-1.5 bg-[#4caf50] rounded-full mx-0.5 mt-1"></span>SMART
               </h2>
-              <span className="text-[9px] font-bold text-[#0f4c81] tracking-widest mt-1 uppercase">Central de Abastecimento Farmacêutico</span>
+              <span className="text-[8px] font-bold text-[#4b2c7f] tracking-[0.1em] mt-1.5 uppercase leading-tight">Central de Abastecimento Farmacêutico</span>
             </div>
           </div>
           <button className="md:hidden text-slate-400 hover:text-slate-600" onClick={() => setIsSidebarOpen(false)}>
@@ -283,8 +283,8 @@ export default function App() {
             <div className="w-8 h-8 flex items-center justify-center">
               <Logo className="w-full h-full" />
             </div>
-            <h1 className="text-lg font-black text-[#0f4c81] flex items-baseline">
-              CAF<span className="text-[#4caf50] mx-0.5 text-2xl leading-none">.</span>SMART
+            <h1 className="text-lg font-black text-[#4b2c7f] flex items-center tracking-tighter">
+              CAF<span className="w-1 h-1 bg-[#4caf50] rounded-full mx-0.5 mt-0.5"></span>SMART
             </h1>
           </div>
         </header>

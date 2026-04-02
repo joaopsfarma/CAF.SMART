@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Menu, X, LayoutDashboard, ClipboardCheck, History, Settings, Archive, Calculator, Scissors, ChevronRight, FileSpreadsheet, LogOut, UserCircle } from 'lucide-react';
 import { Logo } from './components/Logo';
-import PrevisaoTab from './components/PrevisaoTab';
 import FracionamentoTab from './components/FracionamentoTab';
 import RecebimentoTab from './components/RecebimentoTab';
 import QuarentenaTab from './components/QuarentenaTab';
 import FichaTransferenciasTab from './components/FichaTransferenciasTab';
+import FichaContagemTab from './components/FichaContagemTab';
 import HistoricoTab from './components/HistoricoTab';
 import { auth } from './firebase';
 import { signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -187,9 +187,9 @@ export default function App() {
     { id: 'historico', label: 'Histórico', icon: History },
     { id: 'recebimento', label: 'Recebimento', icon: ClipboardCheck },
     { id: 'quarentena', label: 'Quarentena', icon: Archive },
-    { id: 'previsao', label: 'Previsão', icon: Calculator },
     { id: 'fracionamento', label: 'Fracionamento', icon: Scissors },
     { id: 'fichas', label: 'Ficha de Transferências', icon: FileSpreadsheet },
+    { id: 'contagem', label: 'Ficha de Contagem', icon: FileText },
   ];
 
   return (
@@ -294,9 +294,9 @@ export default function App() {
           {activeTab === 'historico' && <HistoricoTab user={user} />}
           {activeTab === 'recebimento' && <RecebimentoTab user={user} />}
           {activeTab === 'quarentena' && <QuarentenaTab user={user} />}
-          {activeTab === 'previsao' && <PrevisaoTab />}
           {activeTab === 'fracionamento' && <FracionamentoTab />}
           {activeTab === 'fichas' && <FichaTransferenciasTab />}
+          {activeTab === 'contagem' && <FichaContagemTab user={user} />}
         </div>
       </main>
     </div>

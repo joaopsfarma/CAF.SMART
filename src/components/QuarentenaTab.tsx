@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
-import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, ClipboardCheck, Table } from 'lucide-react';
+import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, ClipboardCheck, Table, Loader2 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -250,9 +250,6 @@ Os detalhes completos dos checklists encontram-se no sistema ou no PDF gerado.
           </button>
           <button onClick={saveToDatabase} disabled={isSaving} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-sm ${isSaving ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
             <Save size={18} /> <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar'}</span>
-          </button>
-          <button onClick={downloadCSV} disabled={!isPdfReady} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-sm ${isPdfReady ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-400 cursor-not-allowed'}`}>
-            <Table size={18} /> <span className="hidden sm:inline">Baixar Planilha</span>
           </button>
           <button
             onClick={generatePDF}

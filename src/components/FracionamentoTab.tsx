@@ -52,6 +52,22 @@ export default function FracionamentoTab() {
   const [gerandoPdf, setGerandoPdf] = useState(false);
 
   const [abaAtiva, setAbaAtiva] = useState('analise');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === relatorioGerado.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(relatorioGerado.map(r => r.id)));
+    }
+  };
 
   // Estados para edições manuais nas duas abas
   const [fracionamentosManuais, setFracionamentosManuais] = useState<Record<string, number>>({});
@@ -297,12 +313,7 @@ export default function FracionamentoTab() {
        if (searchTerm) return matchSearch;
        return true; 
     }).sort((a, b) => {
-       // Prioriza itens que atingiram o gatilho (estoque crítico) no topo da lista
-       const aCritico = a.saldoRealDestino <= a.estoqueMinimo ? 1 : 0;
-       const bCritico = b.saldoRealDestino <= b.estoqueMinimo ? 1 : 0;
-       if (aCritico !== bCritico) return bCritico - aCritico;
-       
-       return b.aFracionar - a.aFracionar;
+       return a.nome.localeCompare(b.nome);
     });
 
   }, [dadosConsumo, dadosCaf, dadosDestino, dadosTransf, diasMinimo, diasReposicao, searchTerm, fracionamentosManuais]);
@@ -360,12 +371,12 @@ export default function FracionamentoTab() {
       if (abaAtiva === 'separacao') {
          const doc = new jsPDF('l', 'mm', 'a4'); // Alterado para paisagem ('l')
          doc.setFontSize(16);
-         doc.text("Ficha de Separacao e Fracionamento", 14, 15);
+         doc.text("Ficha de Separacao e Duplo Check", 14, 15);
          doc.setFontSize(10);
          doc.setTextColor(100);
          doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 22);
 
-         const tableColumn = ["[ ]", "Produto", "Lote/Val (Sugerido)", "Qtd", "Etiq."];
+         const tableColumn = ["[ ]", "Produto", "Lote/Val (Sugerido)", "Qtd", "Duplo Check Farmacêutico"];
          const tableRows: any[] = [];
 
          const itensParaSeparar = relatorioGerado.filter(r => r.aFracionar > 0);
@@ -376,7 +387,7 @@ export default function FracionamentoTab() {
                    tableRows.push([
                      "", // Checkbox
                      `${row.id}\n${row.nome}`,
-                     `Lt: ${lote.lote}\nVal: ${lote.validade}\n(Sug: ${lote.qtd})`,
+                     `Lt: ${lote.lote}\nVal: ${lote.validade}\n(Sug: ${lote.qtd})\nLote: ____________________________`,
                      "", // Qtd em branco para anotar
                      ""  // Etiqueta (checkbox)
                    ]);
@@ -385,7 +396,7 @@ export default function FracionamentoTab() {
                tableRows.push([
                  "",
                  `${row.id}\n${row.nome}`,
-                 "FALTA ESTOQUE",
+                 "FALTA ESTOQUE\nLote: ____________________________",
                  "", // Qtd
                  ""  // Etiqueta
                ]);
@@ -400,10 +411,10 @@ export default function FracionamentoTab() {
            headStyles: { fillColor: [15, 23, 42], textColor: 255 },
            columnStyles: {
                0: { cellWidth: 10 },
-               1: { cellWidth: 110 },
+               1: { cellWidth: 90 },
                2: { cellWidth: 60 },
-               3: { cellWidth: 40, halign: 'center' },
-               4: { cellWidth: 45, halign: 'center' }
+               3: { cellWidth: 30, halign: 'center' },
+               4: { cellWidth: 75, halign: 'center' }
            },
            didDrawCell: function(data: any) {
               if (data.section === 'body') {
@@ -653,7 +664,7 @@ export default function FracionamentoTab() {
         {mostrarResultados && (
           <div className="hidden print:block mb-4 pb-4 border-b border-slate-300">
             <h1 className="text-2xl font-bold text-slate-800">
-              {abaAtiva === 'separacao' ? 'Ficha de Separação e Etiquetagem' : 'Relatório de Fracionamento (Sugerido)'}
+              {abaAtiva === 'separacao' ? 'Ficha de Separação e Duplo Check' : 'Relatório de Fracionamento (Sugerido)'}
             </h1>
             <p className="text-sm text-slate-500">
               {abaAtiva === 'separacao' 
@@ -717,6 +728,14 @@ export default function FracionamentoTab() {
                 <table className="w-full text-left border-collapse text-sm print:text-xs">
                   <thead>
                     <tr className="bg-slate-50 text-slate-600 uppercase text-[11px] tracking-wider font-bold">
+                      <th className="p-4 print:p-2 border-b w-10">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.size === relatorioGerado.length && relatorioGerado.length > 0}
+                          onChange={toggleSelectAll}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
                       <th className="p-4 print:p-2 border-b">ID</th>
                       <th className="p-4 print:p-2 border-b">Produto</th>
                       <th className="p-4 print:p-2 border-b text-center border-l border-slate-200 bg-amber-50/50 text-amber-800">Mínimo<br/><span className="text-[9px] font-normal">Gatilho ({diasMinimo}d)</span></th>
@@ -734,7 +753,15 @@ export default function FracionamentoTab() {
                       </tr>
                     ) : (
                       relatorioGerado.map((row) => (
-                        <tr key={row.id} className="hover:bg-slate-50 transition-colors print:break-inside-avoid">
+                        <tr key={row.id} className={`hover:bg-slate-50 transition-colors print:break-inside-avoid ${selectedIds.has(row.id) ? 'bg-blue-50/20' : ''}`}>
+                          <td className="p-4 print:p-2 border-b">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedIds.has(row.id)}
+                              onChange={() => toggleSelect(row.id)}
+                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </td>
                           <td className="p-4 print:p-2 text-slate-500 font-mono text-xs">{row.id}</td>
                           <td className="p-4 print:p-2 font-medium text-slate-800 max-w-[200px] truncate print:whitespace-normal" title={row.nome}>{row.nome}</td>
                           
@@ -814,17 +841,24 @@ export default function FracionamentoTab() {
                   <table className="w-full text-left border-collapse text-sm print:text-[11px]">
                     <thead>
                       <tr className="bg-emerald-50 text-emerald-800 uppercase text-[11px] tracking-wider font-bold border-b-2 border-emerald-200">
-                        <th className="p-4 print:p-2 text-center w-12">Atend.</th>
+                        <th className="p-4 print:p-2 text-center w-12">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedIds.size === relatorioGerado.length && relatorioGerado.length > 0}
+                            onChange={toggleSelectAll}
+                            className="w-4 h-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                        </th>
                         <th className="p-4 print:p-2">Produto</th>
                         <th className="p-4 print:p-2">Lote/Val (Sugerido)</th>
                         <th className="p-4 print:p-2 text-center bg-emerald-100/50 w-24">Qtd<br/><span className="text-[9px] font-normal text-emerald-600 print:hidden">(Anotar)</span></th>
-                        <th className="p-4 print:p-2 text-center w-24">Etiq.</th>
+                        <th className="p-4 print:p-2 text-center w-32">Duplo Check Farmacêutico</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {itensParaSeparar.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-12 text-center text-slate-500 bg-slate-50/50">
+                          <td colSpan={6} className="p-12 text-center text-slate-500 bg-slate-50/50">
                             <CheckSquare className="w-8 h-8 mx-auto text-emerald-300 mb-2" />
                             Nenhum medicamento necessita de fracionamento neste momento.
                           </td>
@@ -833,9 +867,14 @@ export default function FracionamentoTab() {
                         itensParaSeparar.map((row) => (
                           row.lotesSugeridos.length > 0 ? (
                             row.lotesSugeridos.map((lote: any, idx: number) => (
-                              <tr key={`${row.id}-${idx}`} className="hover:bg-emerald-50/30 transition-colors print:break-inside-avoid">
+                              <tr key={`${row.id}-${idx}`} className={`hover:bg-emerald-50/30 transition-colors print:break-inside-avoid ${selectedIds.has(row.id) ? 'bg-emerald-50/50' : 'opacity-50'}`}>
                                 <td className="p-4 print:p-2 text-center align-middle">
-                                  <input type="checkbox" className="w-6 h-6 text-emerald-600 rounded border-2 border-slate-400 focus:ring-emerald-500 cursor-pointer" />
+                                  <input 
+                                    type="checkbox" 
+                                    checked={selectedIds.has(row.id)}
+                                    onChange={() => toggleSelect(row.id)}
+                                    className="w-6 h-6 text-emerald-600 rounded border-2 border-slate-400 focus:ring-emerald-500 cursor-pointer" 
+                                  />
                                 </td>
                                 <td className="p-4 print:p-2">
                                   <div className="font-mono text-xs text-slate-500">{row.id}</div>
@@ -844,9 +883,10 @@ export default function FracionamentoTab() {
                                 <td className="p-4 print:p-2">
                                   <div className="flex items-start gap-2">
                                     <input type="checkbox" className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 print:hidden" title="Marcar lote" />
-                                    <div>
+                                    <div className="flex-1">
                                       <div className="font-mono font-medium text-slate-700">{lote.lote}</div>
                                       <div className="text-xs text-slate-500">Val: {lote.validade} <span className="font-semibold text-emerald-600 ml-1">(Sug: {lote.qtd})</span></div>
+                                      <div className="mt-2 border-b border-dotted border-slate-400 w-full h-4" title="Espaço para anotação de lote alternativo"></div>
                                     </div>
                                   </div>
                                 </td>
@@ -863,8 +903,15 @@ export default function FracionamentoTab() {
                               </tr>
                             ))
                           ) : (
-                            <tr key={row.id} className="bg-red-50/30 print:break-inside-avoid">
-                              <td className="p-4 print:p-2 text-center"><AlertTriangle className="w-5 h-5 text-red-500 mx-auto" /></td>
+                            <tr key={row.id} className={`bg-red-50/30 print:break-inside-avoid ${selectedIds.has(row.id) ? '' : 'opacity-50'}`}>
+                              <td className="p-4 print:p-2 text-center">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedIds.has(row.id)}
+                                  onChange={() => toggleSelect(row.id)}
+                                  className="w-6 h-6 text-red-600 rounded border-2 border-slate-400 focus:ring-red-500 cursor-pointer" 
+                                />
+                              </td>
                               <td className="p-4 print:p-2">
                                 <div className="font-mono text-xs text-slate-500">{row.id}</div>
                                 <div className="font-bold text-slate-800">{row.nome}</div>
@@ -872,6 +919,7 @@ export default function FracionamentoTab() {
                               <td className="p-4 print:p-2 text-center">
                                 <span className="text-red-600 font-bold uppercase text-xs">Falta Estoque na CAF</span>
                                 <div className="text-xs text-slate-500">Deveria repor {row.aFracionar} unid.</div>
+                                <div className="mt-2 border-b border-dotted border-slate-400 w-full h-4"></div>
                               </td>
                               <td className="p-4 print:p-2 align-middle bg-emerald-50/30">
                                   <input type="text" className="w-16 p-1 bg-transparent border-b border-red-300 outline-none print:border-none print:p-0" />

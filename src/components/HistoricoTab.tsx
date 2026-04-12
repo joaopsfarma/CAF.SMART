@@ -72,7 +72,7 @@ export default function HistoricoTab({ user }: { user: any }) {
       const quarentenasData = quarentenasSnap.docs.map(doc => ({ id: doc.id, tipo: 'Quarentena', ...doc.data() }));
 
       // Junta tudo e ordena do mais recente para o mais antigo
-      const todosRegistros = [...recebimentosData, ...quarentenasData].sort((a, b) => b.createdAt - a.createdAt);
+      const todosRegistros = [...recebimentosData, ...quarentenasData].sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
       setRegistros(todosRegistros);
     } catch (error) {
       console.error("Erro ao buscar registros:", error);

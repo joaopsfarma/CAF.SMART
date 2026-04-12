@@ -151,7 +151,7 @@ ${formData.observations || 'Nenhuma observação registada.'}
 Os detalhes completos dos checklists encontram-se no sistema ou no PDF gerado.
 `);
     
-    const outlookLink = `https://outlook.office.com/mail/deeplink/compose?subject=${subject}&body=${body}`;
+    const outlookLink = `https://outlook.office.com/mail/deeplink/compose?to=caf.hac@americasmed.com.br&subject=${subject}&body=${body}`;
     window.open(outlookLink, '_blank');
     
     showToast("📧 A abrir o Outlook (Office 365)...");

@@ -134,7 +134,7 @@ Os detalhes completos do checklist encontram-se no sistema ou no PDF gerado.
 `);
     
     // Link direto para o compositor de e-mail do Office 365 (Outlook Web)
-    const outlookLink = `https://outlook.office.com/mail/deeplink/compose?subject=${subject}&body=${body}`;
+    const outlookLink = `https://outlook.office.com/mail/deeplink/compose?to=caf.hac@americasmed.com.br&subject=${subject}&body=${body}`;
     
     // Abre num novo separador (ignora bloqueios locais do navegador)
     window.open(outlookLink, '_blank');

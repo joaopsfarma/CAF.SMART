@@ -159,9 +159,9 @@ export default function FichaContagemTab({ user }: { user: any }) {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []) as File[];
     Promise.all(files.map(file => {
-      return new Promise((resolve) => {
+      return new Promise<{ id: string; mimeType: string; data: string; preview: string; name: string }>((resolve) => {
         const reader = new FileReader();
         reader.onload = (event) => {
           const base64 = (event.target?.result as string).split(',')[1];

@@ -88,6 +88,18 @@ service cloud.firestore {
              data.createdAt is number;
     }
 
+    function isValidMedicamentosDb(data) {
+      return data.keys().hasAll(['items', 'updatedAt']) &&
+             data.items is string &&
+             data.updatedAt is string;
+    }
+
+    function isValidTempoEntregaDb(data) {
+      return data.keys().hasAll(['items', 'updatedAt']) &&
+             data.items is string &&
+             data.updatedAt is string;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -104,6 +116,18 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isValidQuarentena(request.resource.data) && uidUnchanged();
       allow update: if (isOwner() || isAdmin()) && isValidQuarentena(request.resource.data) && uidNotModified();
       allow delete: if isOwner() || isAdmin();
+    }
+
+    match /artifacts/{appId}/public/{dataId}/medicamentos_db/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isValidMedicamentosDb(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    match /artifacts/{appId}/public/{dataId}/tempo_entrega_db/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && isValidTempoEntregaDb(request.resource.data);
+      allow delete: if isAuthenticated();
     }
   }
 }

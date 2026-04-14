@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Menu, X, LayoutDashboard, ClipboardCheck, History, Settings, Archive, Calculator, Scissors, ChevronRight, FileSpreadsheet, LogOut, UserCircle, Activity, Tag, PackageOpen } from 'lucide-react';
+import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Menu, X, LayoutDashboard, ClipboardCheck, History, Settings, Archive, Calculator, Scissors, ChevronRight, FileSpreadsheet, LogOut, UserCircle, Activity, Tag, PackageOpen, Pill, BarChart2, Layers, Receipt } from 'lucide-react';
 import { Logo } from './components/Logo';
 import FracionamentoTab from './components/FracionamentoTab';
 import RecebimentoTab from './components/RecebimentoTab';
@@ -11,6 +11,11 @@ import EtiquetasPrateleiraTab from './components/EtiquetasPrateleiraTab';
 import HistoricoTab from './components/HistoricoTab';
 import PlanoFracionamentoTab from './components/PlanoFracionamentoTab';
 import MapaFracionamentoTab from './components/MapaFracionamentoTab';
+import ConsultaPsicoTab from './components/ConsultaPsicoTab';
+import FollowUpTab from './components/FollowUpTab';
+import PainelContratosTab from './components/PainelContratosTab';
+import NotasFiscaisTab from './components/NotasFiscaisTab';
+import SinalizadorTab from './components/SinalizadorTab';
 import { auth } from './firebase';
 import { signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
@@ -198,6 +203,11 @@ export default function App() {
     { id: 'fichas', label: 'Ficha de Transferências', icon: FileSpreadsheet },
     { id: 'contagem', label: 'Ficha de Contagem', icon: FileText },
     { id: 'etiquetas', label: 'Etiquetas Prateleira', icon: Tag },
+    { id: 'consulta_psico', label: 'Consulta Psico', icon: Pill },
+    { id: 'follow_up', label: 'Follow-up', icon: BarChart2 },
+    { id: 'painel_contratos', label: 'Painel de Contratos', icon: Layers },
+    { id: 'notas_fiscais', label: 'Notas Fiscais', icon: Receipt },
+    { id: 'sinalizador', label: 'Sinalizador', icon: Activity },
   ];
 
   return (
@@ -309,6 +319,11 @@ export default function App() {
           {activeTab === 'fichas' && <FichaTransferenciasTab />}
           {activeTab === 'contagem' && <FichaContagemTab user={user} />}
           {activeTab === 'etiquetas' && <EtiquetasPrateleiraTab />}
+          {activeTab === 'consulta_psico' && <ConsultaPsicoTab user={user} />}
+          {activeTab === 'follow_up' && <FollowUpTab user={user} />}
+          {activeTab === 'painel_contratos' && <PainelContratosTab />}
+          {activeTab === 'notas_fiscais' && <NotasFiscaisTab />}
+          {activeTab === 'sinalizador' && <SinalizadorTab />}
         </div>
       </main>
     </div>

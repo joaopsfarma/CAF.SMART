@@ -43,23 +43,29 @@ export default function App() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    
+    // Assegurar requisitos mínimos do Firebase para permitir "qualquer email e senha"
+    const safeEmail = email.includes('@') ? email : `${email}@app.com`;
+    const safePassword = password.length >= 6 ? password : password + '123456';
+    
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, safeEmail, safePassword);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        try {
+          await signInWithEmailAndPassword(auth, safeEmail, safePassword);
+        } catch (signInErr: any) {
+          // Se as credenciais forem inválidas porque a conta não existe, cria a conta automaticamente
+          if (signInErr.code === 'auth/invalid-credential' || signInErr.code === 'auth/user-not-found') {
+            await createUserWithEmailAndPassword(auth, safeEmail, safePassword);
+          } else {
+            throw signInErr;
+          }
+        }
       }
     } catch (error: any) {
       console.error("Erro na autenticação por email:", error);
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        setAuthError('Email ou senha incorretos.');
-      } else if (error.code === 'auth/email-already-in-use') {
-        setAuthError('Este email já está em uso.');
-      } else if (error.code === 'auth/weak-password') {
-        setAuthError('A senha deve ter pelo menos 6 caracteres.');
-      } else {
-        setAuthError('Ocorreu um erro ao autenticar. Verifique os seus dados.');
-      }
+      setAuthError(`Erro ao autenticar: ${error.message}`);
     }
   };
 

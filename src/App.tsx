@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Menu, X, LayoutDashboard, ClipboardCheck, History, Settings, Archive, Calculator, Scissors, ChevronRight, FileSpreadsheet, LogOut, UserCircle, Activity, Tag, PackageOpen, Pill, BarChart2, Layers, Receipt } from 'lucide-react';
+import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Menu, X, LayoutDashboard, ClipboardCheck, History, Settings, Archive, Calculator, Scissors, ChevronRight, FileSpreadsheet, LogOut, UserCircle, Activity, Tag, PackageOpen, Pill, BarChart2, Layers, Receipt, Search } from 'lucide-react';
 import { Logo } from './components/Logo';
 import FracionamentoTab from './components/FracionamentoTab';
 import RecebimentoTab from './components/RecebimentoTab';
@@ -16,12 +16,13 @@ import FollowUpTab from './components/FollowUpTab';
 import PainelContratosTab from './components/PainelContratosTab';
 import NotasFiscaisTab from './components/NotasFiscaisTab';
 import SinalizadorTab from './components/SinalizadorTab';
+import PainelConsultaTab from './components/PainelConsultaTab';
 import { auth } from './firebase';
 import { signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('quarentena');
+  const [activeTab, setActiveTab] = useState('recebimento_form');
   const [user, setUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
 
@@ -192,23 +193,66 @@ export default function App() {
     );
   }
 
-  const menuItems = [
-    { id: 'historico', label: 'Histórico', icon: History },
-    { id: 'recebimento', label: 'Recebimento', icon: ClipboardCheck },
-    { id: 'quarentena', label: 'Quarentena', icon: Archive },
-    { id: 'fracionamento', label: 'Fracionamento', icon: Scissors },
-    { id: 'plano_fracionamento', label: 'Plano de Fracionamento', icon: PackageOpen },
-    { id: 'mapa_fracionamento', label: 'Mapa de Fracionamento', icon: LayoutDashboard },
-    { id: 'consumo_dispensarios', label: 'Consumo Dispensários', icon: Activity },
-    { id: 'fichas', label: 'Ficha de Transferências', icon: FileSpreadsheet },
-    { id: 'contagem', label: 'Ficha de Contagem', icon: FileText },
-    { id: 'etiquetas', label: 'Etiquetas Prateleira', icon: Tag },
-    { id: 'consulta_psico', label: 'Consulta Psico', icon: Pill },
-    { id: 'follow_up', label: 'Follow-up', icon: BarChart2 },
-    { id: 'painel_contratos', label: 'Painel de Contratos', icon: Layers },
-    { id: 'notas_fiscais', label: 'Notas Fiscais', icon: Receipt },
-    { id: 'sinalizador', label: 'Sinalizador', icon: Activity },
+  const categories = [
+    {
+      id: 'recebimento',
+      label: 'Recebimento',
+      icon: ClipboardCheck,
+      subTabs: [
+        { id: 'recebimento_form', label: 'Formulário Recebimento', icon: ClipboardCheck },
+        { id: 'quarentena_recebimento', label: 'Quarentena Recebimento', icon: Archive },
+        { id: 'quarentena_farmaceutico', label: 'Quarentena Farmacêutico', icon: Pill },
+      ]
+    },
+    {
+      id: 'fracionamento',
+      label: 'Fracionamento',
+      icon: Scissors,
+      subTabs: [
+        { id: 'fracionamento_form', label: 'Fracionamento', icon: Scissors },
+        { id: 'plano_fracionamento', label: 'Plano de Fracionamento', icon: PackageOpen },
+        { id: 'mapa_fracionamento', label: 'Mapa de Fracionamento', icon: LayoutDashboard },
+        { id: 'consumo_dispensarios', label: 'Consumo Dispensários', icon: Activity },
+        { id: 'fichas', label: 'Ficha de Transferências', icon: FileSpreadsheet },
+        { id: 'contagem', label: 'Ficha de Contagem', icon: FileText },
+        { id: 'etiquetas', label: 'Etiqueta Prateleira', icon: Tag },
+      ]
+    },
+    {
+      id: 'supply',
+      label: 'Supply',
+      icon: Layers,
+      subTabs: [
+        { id: 'follow_up', label: 'Follow Up', icon: BarChart2 },
+        { id: 'painel_contratos', label: 'Painel de Contratos', icon: Layers },
+        { id: 'notas_fiscais', label: 'Notas Fiscais', icon: Receipt },
+        { id: 'sinalizador', label: 'Sinalizador', icon: Activity },
+        { id: 'painel_consulta', label: 'Painel de Consulta', icon: Search },
+      ]
+    }
   ];
+
+  const currentCategoryObj = categories.find(c => c.id === activeTab);
+  
+  // Se estiver numa subaba, precisamos encontrar a categoria pai
+  let activeCategory = categories[0].id;
+  let activeSubTab = '';
+  
+  for (const cat of categories) {
+    if (cat.id === activeTab) {
+      activeCategory = cat.id;
+      activeSubTab = cat.subTabs[0].id;
+      break;
+    }
+    const sub = cat.subTabs.find(s => s.id === activeTab);
+    if (sub) {
+      activeCategory = cat.id;
+      activeSubTab = sub.id;
+      break;
+    }
+  }
+
+  const activeCategoryObj = categories.find(c => c.id === activeCategory);
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden font-sans">
@@ -243,15 +287,15 @@ export default function App() {
         </div>
         
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
-          <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider mb-4 px-3">Menu Principal</div>
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
+          <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider mb-4 px-3">Módulos</div>
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const isActive = activeCategory === category.id;
             return (
               <button 
-                key={item.id}
+                key={category.id}
                 onClick={() => {
-                  setActiveTab(item.id);
+                  setActiveTab(category.subTabs[0].id);
                   setIsSidebarOpen(false); // Fecha no mobile ao clicar
                 }} 
                 className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-200 group
@@ -261,12 +305,30 @@ export default function App() {
               >
                 <div className="flex items-center gap-3.5">
                   <Icon size={20} className={`${isActive ? 'text-purple-600' : 'text-slate-400 group-hover:text-slate-500'} transition-colors`} strokeWidth={isActive ? 2.5 : 2} /> 
-                  <span className={`font-medium ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
+                  <span className={`font-medium ${isActive ? 'font-semibold' : ''}`}>{category.label}</span>
                 </div>
                 {isActive && <ChevronRight size={16} className="text-purple-400" />}
               </button>
             );
           })}
+          
+          <div className="mt-8 mb-2 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Outros</div>
+          <button 
+            onClick={() => {
+              setActiveTab('historico');
+              setIsSidebarOpen(false);
+            }} 
+            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-200 group
+              ${activeTab === 'historico' 
+                ? 'bg-purple-50/80 text-purple-700 shadow-sm border border-purple-100/50' 
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+          >
+            <div className="flex items-center gap-3.5">
+              <History size={20} className={`${activeTab === 'historico' ? 'text-purple-600' : 'text-slate-400 group-hover:text-slate-500'} transition-colors`} strokeWidth={activeTab === 'historico' ? 2.5 : 2} /> 
+              <span className={`font-medium ${activeTab === 'historico' ? 'font-semibold' : ''}`}>Histórico</span>
+            </div>
+            {activeTab === 'historico' && <ChevronRight size={16} className="text-purple-400" />}
+          </button>
         </nav>
 
         <div className="p-6 border-t border-slate-100">
@@ -307,23 +369,50 @@ export default function App() {
           </div>
         </header>
 
+        {/* Sub Tabs */}
+        {activeCategoryObj && activeTab !== 'historico' && (
+          <div className="bg-white border-b border-slate-200 px-4 md:px-8 flex overflow-x-auto custom-scrollbar shadow-sm z-20">
+            <div className="flex min-w-max">
+              {activeCategoryObj.subTabs.map((subTab) => {
+                const isSubActive = activeSubTab === subTab.id;
+                const Icon = subTab.icon;
+                return (
+                  <button
+                    key={subTab.id}
+                    onClick={() => setActiveTab(subTab.id)}
+                    className={`flex items-center gap-2 px-5 py-4 font-bold text-sm transition-all border-b-[3px]
+                      ${isSubActive 
+                        ? 'text-purple-700 border-purple-600 bg-purple-50/30' 
+                        : 'text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50'
+                      }`}
+                  >
+                    <Icon size={18} className={isSubActive ? 'text-purple-600' : 'text-slate-400'} />
+                    {subTab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {activeTab === 'historico' && <HistoricoTab user={user} />}
-          {activeTab === 'recebimento' && <RecebimentoTab user={user} />}
-          {activeTab === 'quarentena' && <QuarentenaTab user={user} />}
-          {activeTab === 'fracionamento' && <FracionamentoTab />}
+          {activeTab === 'recebimento_form' && <RecebimentoTab user={user} />}
+          {activeTab === 'quarentena_recebimento' && <QuarentenaTab user={user} />}
+          {activeTab === 'quarentena_farmaceutico' && <ConsultaPsicoTab user={user} />}
+          {activeTab === 'fracionamento_form' && <FracionamentoTab />}
           {activeTab === 'plano_fracionamento' && <PlanoFracionamentoTab />}
           {activeTab === 'mapa_fracionamento' && <MapaFracionamentoTab />}
           {activeTab === 'consumo_dispensarios' && <ConsumoDispensariosTab />}
           {activeTab === 'fichas' && <FichaTransferenciasTab />}
           {activeTab === 'contagem' && <FichaContagemTab user={user} />}
           {activeTab === 'etiquetas' && <EtiquetasPrateleiraTab />}
-          {activeTab === 'consulta_psico' && <ConsultaPsicoTab user={user} />}
           {activeTab === 'follow_up' && <FollowUpTab user={user} />}
           {activeTab === 'painel_contratos' && <PainelContratosTab />}
           {activeTab === 'notas_fiscais' && <NotasFiscaisTab />}
           {activeTab === 'sinalizador' && <SinalizadorTab />}
+          {activeTab === 'painel_consulta' && <PainelConsultaTab />}
         </div>
       </main>
     </div>

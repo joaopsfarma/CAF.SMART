@@ -3,6 +3,7 @@ import Papa from 'papaparse';
 import { FileText, Download, CheckCircle, XCircle, MinusCircle, AlertCircle, Save, Mail, Table, Loader2 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { suppliersList } from '../data/suppliers';
 
 export default function RecebimentoTab({ user }: { user: any }) {
   const [isPdfReady, setIsPdfReady] = useState(false);
@@ -288,10 +289,16 @@ Os detalhes completos do checklist encontram-se no sistema ou no PDF gerado.
               <div className="flex flex-col">
                 <label className="text-xs font-semibold text-slate-500 uppercase">Fornecedor</label>
                 <input 
+                  list="suppliers-list"
                   type="text" name="supplier" value={formData.supplier} onChange={handleInputChange}
                   className="mt-1 pb-1 border-b border-slate-300 focus:border-blue-500 outline-none w-full bg-transparent text-slate-900 font-medium placeholder-slate-300"
                   placeholder="Empresa emissora da NF"
                 />
+                <datalist id="suppliers-list">
+                  {suppliersList.map((sup, idx) => (
+                    <option key={idx} value={sup} />
+                  ))}
+                </datalist>
               </div>
               <div className="flex flex-col">
                 <label className="text-xs font-semibold text-slate-500 uppercase">Transportadora</label>
